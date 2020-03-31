@@ -1,0 +1,17 @@
+# OS junk files
+[Tt]humbs.db
+*.DS_Store
+*.bak*
+*.tmp
+*.log
+._*
+~$*
+.~*
+
+# PyCharm
+.idea/
+
+# Project Files
+web/steps/step*.js
+web/steps/step*.wasm
+!web/steps/*canvas.js

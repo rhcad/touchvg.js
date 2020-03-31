@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>WASM绘图样例</title>
+  <style>
+    #bd {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+<canvas id="bd" width="400" height="400"></canvas>
+<script src="step3.js"></script>
+<script>
+  Module.onRuntimeInitialized = () => {
+    const c = document.getElementById('bd');
+    const ctx = c.getContext('2d');
+    ctx.beginPath();
+    draw_with_json(ctx, Module._draw_as_json());
+    ctx.stroke();
+  };
+</script>
+</body>
+</html>
