@@ -6,10 +6,15 @@
 - 在 js 层的 `step3_canvas.js` 实现绘图指令的解包，调用画布函数完成绘图。
 
 编译和运行：
+
 ```
 sh web/steps/step4.sh
-emrun --port 8080 web/steps/step4.html
+emrun --no_browser --port 8080 web
 ```
+
+然后打开 [steps/step4.html](http://0.0.0.0:8080/steps/step4.html)
+
+或者不使用`emrun`，直接在WebStorm或PyCharm中打开 `steps/step4.html` 执行 `Open in Browser`。
 
 ## 参考资料
 

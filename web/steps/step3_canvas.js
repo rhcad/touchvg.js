@@ -2,11 +2,13 @@
     mod.draw_with_json = (ctx, c_json) => {
         const json = UTF8ToString(c_json);
         _free(c_json);
-        for (const cmd of JSON.parse(json)) {
-            try {
-                commands[cmd.cmd](cmd, ctx);
-            } catch (e) {
-                console.error(e, cmd);
+        if (json) {
+            for (const cmd of JSON.parse(json)) {
+                try {
+                    commands[cmd.cmd](cmd, ctx);
+                } catch (e) {
+                    console.error(e, cmd);
+                }
             }
         }
     };

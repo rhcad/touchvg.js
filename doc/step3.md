@@ -3,6 +3,7 @@
 本例实现在网页画布中使用C++函数绘图。
 
 编译和运行：
+
 ```
 sh web/steps/step3.sh
 emrun --port 8080 web/steps/step3.html

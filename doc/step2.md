@@ -14,14 +14,15 @@ Emscripten 提供以下宏用以调用嵌入的 js 代码:
 其中，JS 代码里的$0表示第一个参数，$1表示第二个参数。用 UTF8ToString() 方法将C字符数组转成 JS 的字符串。
 
 1. 在编译脚本中用 `EXPORTED_FUNCTIONS` 指定要导出的函数，将C++代码编译为js和wasm文件：
+
 ```
 emcc web/steps/step2.cpp -s EXPORTED_FUNCTIONS="['_main', '_call_js']" -o web/steps/step2.js
 ```
 
 2. 在浏览器运行
+
 ```
 emrun --port 8080 web/steps/step2.html
-emrun --no_browser --port 8080 web/steps
 ```
 
 ## 参考资料

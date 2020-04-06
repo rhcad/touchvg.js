@@ -126,11 +126,12 @@
                     context.oBackingStorePixelRatio ||
                     context.backingStorePixelRatio || 1;
                 ratio = (window.devicePixelRatio || 1) / backingStore;
-                if (ratio > 1) {
+                if (ratio > 1 && !this._ratio) {
                     this.style.height = this.height + 'px';
                     this.style.width = this.width + 'px';
                     this.width *= ratio;
                     this.height *= ratio;
+                    this._ratio = ratio;
                 }
             }
             return context;

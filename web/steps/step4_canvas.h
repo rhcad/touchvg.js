@@ -30,3 +30,5 @@ private:
 
     CanvasCmd& push();
 };
+
+void* to_json(CJsonObject& items);

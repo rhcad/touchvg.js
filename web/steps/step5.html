@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../favicon.ico">
+  <title>WASM更多绘图</title>
+  <link rel="stylesheet" href="css/palette-color-picker.css">
+  <style>
+    #bd {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .palette-color-picker-button {
+      width: 16px;
+      height: 16px;
+    }
+    [name^=picker] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="cmd-buttons">
+  <button class="cmd-btn" id="cmd-clear">Clear</button>
+  <button class="cmd-btn" id="cmd-line">Line</button>
+  <button class="cmd-btn" id="cmd-circle">Circle</button>
+  <input name="picker-front" title="Front Color" data-palette='["#D50000","#304FFE","#00B8D4","#00C853","#FFD600","#FF6D00","#FF1744","#3D5AFE","#00E5FF","#00E676","#FFEA00","#FF9100","#FF5252","#536DFE","#18FFFF","#69F0AE","#FFFF00","#FFAB40"]'>
+  <input name="picker-back" title="Background Color" data-palette='["#D50000","#304FFE","#00B8D4","#00C853","#FFD600","#FF6D00","#FF1744","#3D5AFE","#00E5FF","#00E676","#FFEA00","#FF9100","#FF5252","#536DFE","#18FFFF","#69F0AE","#FFFF00","#FFAB40"]'>
+</div>
+<canvas id="bd" width="400" height="400"></canvas>
+
+<script src="js/hidpi-canvas-polyfill.js"></script>
+<script src="js/jquery-2.1.1.min.js"></script>
+<script src="js/palette-color-picker2.js"></script>
+<script src="step5.js"></script>
+<script>
+  $('[name=picker-front]').paletteColorPicker();
+  $('[name=picker-back]').paletteColorPicker();
+
+  $('[name^=picker]').change(e => {
+    const ctx = document.getElementById('bd').getContext('2d');
+    const name = e.delegateTarget.name === 'picker-back' ? 'fillStyle' : 'strokeStyle';
+    ctx[name] = e.delegateTarget.value || 'transparent';
+
+    const _name = allocateUTF8(name);
+    const _value = allocateUTF8(e.delegateTarget.value || 'transparent');
+    Module._set_attr(data.handle, _name, _value);
+    _free(_name);
+    _free(_value);
+  });
+
+  $('.cmd-btn').click(e => {
+    const name = $(e.target).attr('id').split('-')[1];
+    const _name = allocateUTF8(name);
+    Module._set_command(data.handle, _name);
+    data.draw();
+    _free(_name);
+  });
+
+  var data = {};
+
+  Module.onRuntimeInitialized = () => {
+    const canvas = document.getElementById('bd');
+    const handle = data.handle = Module._create_canvas();
+
+    const cacheCanvas = document.createElement('canvas');
+    cacheCanvas.width = canvas.width;
+    cacheCanvas.height = canvas.height;
+
+    const getPoint = e => {
+      let box = canvas.getBoundingClientRect();
+      return {x: (0.5 + e.clientX - box.left) << 0, y: (0.5 + e.clientY - box.top) << 0};
+    };
+
+    data.draw = () => {
+      if (Module._is_need_regen(handle)) {
+        const cacheCtx = cacheCanvas.getContext('2d');
+        cacheCtx.save();
+        cacheCtx.clearRect(0, 0, canvas.width, canvas.height);
+        draw_with_json(cacheCtx, Module._draw_all(handle));
+        cacheCtx.restore();
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(cacheCanvas, 0, 0);
+      draw_with_json(ctx, Module._draw_dyn(handle));
+    };
+
+    canvas.onmousedown = e => {
+      const {x, y} = getPoint(e);
+      Module._mouse_down(handle, x, y);
+      data.draw();
+    };
+    canvas.onmousemove = e => {
+      const {x, y} = getPoint(e);
+      if (Module._mouse_move(handle, x, y)) {
+        data.draw();
+      }
+    };
+    canvas.onmouseup = e => {
+      const {x, y} = getPoint(e);
+      Module._mouse_up(handle, x, y);
+      data.draw();
+    };
+  };
+</script>
+</body>
+</html>

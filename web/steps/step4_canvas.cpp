@@ -125,3 +125,10 @@ CanvasCmd& CanvasCmd::text(float x, float y, const char *s) {
     _obj.Add("text", s);
     return push();
 }
+
+void* to_json(CJsonObject& items) {
+    std::string json(items.ToString());
+    void* buf = malloc(1 + json.length());
+    memcpy(buf, json.c_str(), 1 + json.length());
+    return buf;
+}

@@ -20,8 +20,5 @@ extern "C" void* draw_as_json() {
     CanvasCmd(&items).text(100, 145, "Hello from C++!");
     CanvasCmd(&items).attr(textAttr).text(200, 180, "Hello from C++!");
 
-    std::string json(items.ToString());
-    void* buf = malloc(1 + json.length());
-    memcpy(buf, json.c_str(), 1 + json.length());
-    return buf;
+    return to_json(items);
 }

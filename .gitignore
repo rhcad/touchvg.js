@@ -15,3 +15,5 @@
 web/steps/step*.js
 web/steps/step*.wasm
 !web/steps/*canvas.js
+web/steps/js
+web/steps/css

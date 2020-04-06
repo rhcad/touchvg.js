@@ -5,6 +5,7 @@
 1. 在C++代码里实现接口函数 `extern "C" int test_func()`，见 `step1.cpp`。
 
 2. 在编译脚本中用 `EXPORTED_FUNCTIONS` 指定要导出的函数，将C++代码编译为js和wasm文件：
+
 ```
 emcc web/steps/step1.cpp -s EXPORTED_FUNCTIONS="['_test_func']" -o web/steps/step1.js
 ```
@@ -16,6 +17,7 @@ emcc web/steps/step1.cpp -s EXPORTED_FUNCTIONS="['_test_func']" -o web/steps/ste
 3. 在网页中引用 `simple.js`，调用接口函数 `_test_func`，见 `step1.html`。 
 
 4. 在浏览器运行
+
 ```
 emrun --port 8080 web/steps/step1.html
 ```
