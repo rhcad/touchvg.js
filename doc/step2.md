@@ -16,6 +16,7 @@ Emscripten 提供以下宏用以调用嵌入的 js 代码:
 1. 在编译脚本中用 `EXPORTED_FUNCTIONS` 指定要导出的函数，将C++代码编译为js和wasm文件：
 
 ```
+source ../emsdk/emsdk_env.sh
 emcc web/steps/step2.cpp -s EXPORTED_FUNCTIONS="['_main', '_call_js']" -o web/steps/step2.js
 ```
 

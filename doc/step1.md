@@ -7,6 +7,7 @@
 2. 在编译脚本中用 `EXPORTED_FUNCTIONS` 指定要导出的函数，将C++代码编译为js和wasm文件：
 
 ```
+source ../emsdk/emsdk_env.sh
 emcc web/steps/step1.cpp -s EXPORTED_FUNCTIONS="['_test_func']" -o web/steps/step1.js
 ```
 注：

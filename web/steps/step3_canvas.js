@@ -1,16 +1,19 @@
 (function(mod) {
-    mod.draw_with_json = (ctx, c_json) => {
+    mod.render_with_json = (ctx, c_json) => {
         const json = UTF8ToString(c_json);
+        let count = 0;
         _free(c_json);
         if (json) {
             for (const cmd of JSON.parse(json)) {
                 try {
                     commands[cmd.cmd](cmd, ctx);
+                    count++;
                 } catch (e) {
                     console.error(e, cmd);
                 }
             }
         }
+        return count;
     };
     const commands = {
         beginPath(cmd, ctx) {
@@ -55,7 +58,7 @@
         },
         attrNames: ['lineCap', 'lineDashOffset', 'lineJoin', 'lineWidth', 'miterLimit', 'setLineDash',
             'direction', 'font', 'textAlign', 'textBaseline',
-            'fillStyle', 'strokeStyle',
+            'fillStyle', 'strokeStyle', 'alpha'
         ],
         attr(cmd, ctx) {
             Object.keys(cmd).forEach(name => {
@@ -66,6 +69,9 @@
                     else if (Array.isArray(cmd[name])) {
                         ctx[name](cmd[name]);
                     }
+                }
+                else if (name === 'alpha') {
+                    ctx.globalAlpha = cmd[name];
                 }
                 else if (this.attrNames.indexOf(name) >= 0) {
                     ctx[name] = cmd[name];

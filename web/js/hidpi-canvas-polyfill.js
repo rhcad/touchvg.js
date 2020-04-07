@@ -117,7 +117,7 @@
     prototype.getContext = (function (_super) {
         return function (type) {
             var backingStore, ratio,
-                context = _super.call(this, type);
+                context = _super.call(this, type, {alpha: false});
             if (type === '2d') {
                 backingStore = context.backingStorePixelRatio ||
                     context.webkitBackingStorePixelRatio ||
@@ -126,12 +126,13 @@
                     context.oBackingStorePixelRatio ||
                     context.backingStorePixelRatio || 1;
                 ratio = (window.devicePixelRatio || 1) / backingStore;
-                if (ratio > 1 && !this._ratio) {
-                    this.style.height = this.height + 'px';
-                    this.style.width = this.width + 'px';
-                    this.width *= ratio;
-                    this.height *= ratio;
-                    this._ratio = ratio;
+                if (ratio > 1) {
+                    this._width = this._width || this.width;
+                    this._height = this._height || this.height;
+                    this.style.height = this._height + 'px';
+                    this.style.width = this._width + 'px';
+                    this.width = this._width * ratio;
+                    this.height = this._height * ratio;
                 }
             }
             return context;

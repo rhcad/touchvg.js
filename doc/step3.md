@@ -5,6 +5,7 @@
 编译和运行：
 
 ```
+source ../emsdk/emsdk_env.sh
 sh web/steps/step3.sh
 emrun --port 8080 web/steps/step3.html
 ```
