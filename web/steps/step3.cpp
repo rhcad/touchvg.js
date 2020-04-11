@@ -2,7 +2,7 @@
 #include <CJsonObject.hpp>
 
 // 演示在C++代码里将绘图指令打包为JSON串，在JS里解包调用画布函数绘图，记得要free
-extern "C" void* draw_as_json() {
+extern "C" void* render_as_json() {
     neb::CJsonObject items;
     neb::CJsonObject arc, text;
 

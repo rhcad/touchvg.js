@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <link rel="icon" href="../favicon.ico">
   <title>WASM更多绘图</title>
-  <link rel="stylesheet" href="css/palette-color-picker.css">
+  <link rel="stylesheet" href="../css/palette-color-picker.css">
   <style>
     #bd {
       border: 1px solid #ddd;
       border-radius: 4px;
+      cursor: crosshair;
     }
     .palette-color-picker-button {
       width: 16px;
@@ -35,10 +36,10 @@
 </div>
 <canvas id="bd" width="400" height="400"></canvas>
 
-<script src="js/hidpi-canvas-polyfill.js"></script>
-<script src="js/jquery-2.1.1.min.js"></script>
-<script src="js/palette-color-picker.js"></script>
-<script src="step5.js?v=2"></script>
+<script src="../js/hidpi-canvas-polyfill.js"></script>
+<script src="../js/jquery-2.1.1.min.js"></script>
+<script src="../js/palette-color-picker.js"></script>
+<script src="../js/gen/step5.js?v=2"></script>
 <script>
   $('[name=picker-front]').paletteColorPicker();
   $('[name=picker-back]').paletteColorPicker();
@@ -84,7 +85,7 @@
   Module.onRuntimeInitialized = () => {
     const canvas = document.getElementById('bd');
     const handle = data.handle = Module._create_canvas();
-    const cacheCanvas = document.createElement('canvas');
+    const cacheCanvas = 0; // document.createElement('canvas');
 
     const getPoint = e => {
       let box = canvas.getBoundingClientRect();
@@ -92,22 +93,27 @@
     };
 
     data.render = () => {
-      let needRegen = Module._is_need_regen(handle);
-      if (cacheCanvas.width != canvas.width || cacheCanvas.height != canvas.height) {
-        cacheCanvas.width = cacheCanvas._width = canvas.width;
-        cacheCanvas.height = cacheCanvas._height = canvas.height;
-        needRegen = true;
+      let needRegen = !cacheCanvas || Module._is_need_regen(handle);
+      const ctx = canvas.getContext('2d');
+
+      if (cacheCanvas) {
+        if (cacheCanvas.width != canvas.width || cacheCanvas.height != canvas.height) {
+          cacheCanvas.width = cacheCanvas._width = canvas.width;
+          cacheCanvas.height = cacheCanvas._height = canvas.height;
+          needRegen = true;
+        }
       }
       if (needRegen) {
-        const cacheCtx = cacheCanvas.getContext('2d');
+        const cacheCtx = cacheCanvas ? cacheCanvas.getContext('2d') : ctx;
         cacheCtx.save();
         cacheCtx.clearRect(0, 0, canvas.width, canvas.height);
         for (let i = 0; render_with_json(cacheCtx, Module._render_all(handle, i, 500));) i++;
         cacheCtx.restore();
       }
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(cacheCanvas, 0, 0);
+      if (cacheCanvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(cacheCanvas, 0, 0);
+      }
       render_with_json(ctx, Module._render_dyn(handle));
     };
 

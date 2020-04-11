@@ -9,7 +9,7 @@
 
 ```
 source ../emsdk/emsdk_env.sh
-sh web/steps/step4.sh
+sh web/build/step4.sh
 emrun --no_browser --port 8080 web
 ```
 

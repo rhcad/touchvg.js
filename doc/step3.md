@@ -6,9 +6,14 @@
 
 ```
 source ../emsdk/emsdk_env.sh
-sh web/steps/step3.sh
-emrun --port 8080 web/steps/step3.html
+sh web/build/step3.sh
+emrun --no_browser --port 8080 web
 ```
+
+然后打开 [steps/step3.html](http://0.0.0.0:8080/steps/step3.html)
+
+或者不使用`emrun`，直接在WebStorm或PyCharm中打开 `steps/step3.html` 执行 `Open in Browser`。
+
 
 要点：
 

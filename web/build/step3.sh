@@ -5,5 +5,5 @@ emcc web/steps/step3.cpp \
      core/storage/cJSON.c \
      -I core/storage \
      -s EXPORTED_FUNCTIONS="['_render_as_json']" \
-     -o web/steps/step3.js \
+     -o web/js/gen/step3.js \
      --post-js web/steps/step3_canvas.js

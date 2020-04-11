@@ -1,6 +1,6 @@
 #include "step4_canvas.h"
 
-extern "C" void* draw_as_json() {
+extern "C" void* render_as_json() {
     CJsonObject items;
     CJsonObject arcAttr, rectAttr, rectAttr2, textAttr;
 

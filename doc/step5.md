@@ -4,7 +4,7 @@
 
 - 从网页传递画布的鼠标消息到C++
 - 实现绘图命令和图形实体类
-- 双缓存绘图，区分静态图形和动态拖曳图形
+- 双缓存绘图，区分静态图形和动态拖曳图形(试验表明双缓存更慢)
 - 绘图属性的改变控制
 - 画布缩放
 
@@ -12,7 +12,7 @@
 
 ```
 source ../emsdk/emsdk_env.sh
-sh web/steps/step5.sh
+sh web/build/step5.sh
 emrun --no_browser --port 8080 web
 ```
 

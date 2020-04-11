@@ -1,7 +1,5 @@
 #!/bin/sh
-
-test -d web/steps/js || ln -s $(pwd)/web/js $(pwd)/web/steps/
-test -d web/steps/css || ln -s $(pwd)/web/css $(pwd)/web/steps/
+# sh web/build/step4.sh
 
 emcc web/steps/step4*.cpp \
      core/storage/CJsonObject.cpp \
@@ -9,5 +7,5 @@ emcc web/steps/step4*.cpp \
      -I core/storage \
      -I web/steps \
      -s EXPORTED_FUNCTIONS="['_render_as_json']" \
-     -o web/steps/step4.js \
+     -o web/js/gen/step4.js \
      --post-js web/steps/step3_canvas.js
