@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test -d web/js/gen || mkdir web/js/gen
 emcc web/steps/step3.cpp \
      core/storage/CJsonObject.cpp \
      core/storage/cJSON.c \

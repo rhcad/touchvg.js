@@ -3,6 +3,7 @@
 
 functions=`python web/build/extract_api.py web/steps/step5.cpp`
 
+test -d web/js/gen || mkdir web/js/gen
 emcc web/steps/step5.cpp \
      web/steps/step4_canvas.cpp \
      core/storage/CJsonObject.cpp \

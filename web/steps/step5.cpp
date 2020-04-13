@@ -301,7 +301,7 @@ public:
     }
 
     virtual void render(CJsonObject *items) const {
-        _shape.render(items);
+        _shape.render(items, &owner()->attr);
     }
 
     virtual void onDown(const Point &pt) {
@@ -334,7 +334,7 @@ public:
     }
 
     virtual void render(CJsonObject *items) const {
-        _shape.render(items);
+        _shape.render(items, &owner()->attr);
     }
 
     virtual void onDown(const Point &pt) {
