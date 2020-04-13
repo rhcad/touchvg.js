@@ -1,14 +1,15 @@
 #!/bin/sh
-# sh web/build/step5.sh
+# sh web/build/step6.sh
 
-functions=`python web/build/extract_api.py web/steps/step5.cpp`
+functions=`python web/build/extract_api.py web/steps/step5.cpp web/steps/step6.cpp`
 
-emcc web/steps/step5.cpp \
+emcc web/steps/step6.cpp \
+     web/steps/step5.cpp \
      web/steps/step4_canvas.cpp \
      core/storage/CJsonObject.cpp \
      core/storage/cJSON.c \
      -I core/storage \
      -I web/steps \
      -s EXPORTED_FUNCTIONS="$functions" \
-     -o web/js/gen/step5.js \
+     -o web/js/gen/step6.js \
      --post-js web/steps/step3_canvas.js

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <link rel="icon" href="../favicon.ico">
-  <title>使用鼠标交互式绘图</title>
+  <title>绘图和图形选择</title>
   <link rel="stylesheet" href="../css/palette-color-picker.css">
   <style>
     #bd {
@@ -28,6 +28,7 @@
 <div class="cmd-buttons">
   <button class="cmd-btn" id="cmd-clear">Clear</button>
   <button class="cmd-btn" id="cmd-rand">Random</button>
+  <button class="cmd-btn" id="cmd-select">Select</button>
   <button class="cmd-btn" id="cmd-line">Line</button>
   <button class="cmd-btn" id="cmd-circle">Circle</button>
   <input name="picker-front" title="Front Color" data-palette='["#D50000","#304FFE","#00B8D4","#00C853","#FFD600","#FF6D00","#FF1744","#3D5AFE","#00E5FF","#00E676","#FFEA00","#FF9100","#FF5252","#536DFE","#18FFFF","#69F0AE","#FFFF00","#FFAB40"]'>
@@ -39,7 +40,7 @@
 <script src="../js/hidpi-canvas-polyfill.js"></script>
 <script src="../js/jquery-2.1.1.min.js"></script>
 <script src="../js/palette-color-picker.js"></script>
-<script src="../js/gen/step5.js"></script>
+<script src="../js/gen/step6.js"></script>
 <script>
   $('[name=picker-front]').paletteColorPicker();
   $('[name=picker-back]').paletteColorPicker();
@@ -84,8 +85,7 @@
 
   Module.onRuntimeInitialized = () => {
     const canvas = document.getElementById('bd');
-    const handle = data.handle = Module._create_canvas();
-    const cacheCanvas = 0; // document.createElement('canvas');
+    const handle = data.handle = Module._create_canvas2();
 
     const getPoint = e => {
       let box = canvas.getBoundingClientRect();
@@ -93,27 +93,10 @@
     };
 
     data.render = () => {
-      let needRegen = !cacheCanvas || Module._is_need_regen(handle);
       const ctx = canvas.getContext('2d');
 
-      if (cacheCanvas) {
-        if (cacheCanvas.width != canvas.width || cacheCanvas.height != canvas.height) {
-          cacheCanvas.width = cacheCanvas._width = canvas.width;
-          cacheCanvas.height = cacheCanvas._height = canvas.height;
-          needRegen = true;
-        }
-      }
-      if (needRegen) {
-        const cacheCtx = cacheCanvas ? cacheCanvas.getContext('2d') : ctx;
-        cacheCtx.save();
-        cacheCtx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; render_with_json(cacheCtx, Module._render_all(handle, i, 500));) i++;
-        cacheCtx.restore();
-      }
-      if (cacheCanvas) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(cacheCanvas, 0, 0);
-      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; render_with_json(ctx, Module._render_all(handle, i, 500));) i++;
       render_with_json(ctx, Module._render_dyn(handle));
     };
 

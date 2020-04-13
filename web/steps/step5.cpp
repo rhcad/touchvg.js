@@ -1,67 +1,25 @@
-#include "step4_canvas.h"
-#include <list>
-#include <string>
-#include <math.h>
+#include "step5.h"
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
-struct Point {
-    float x;
-    float y;
-
-    Point() : x(0), y(0) {}
-
-    Point(float x_, float y_) : x(x_), y(y_) {}
-
-    Point(const Point &src) : x(src.x), y(src.y) {}
-
-    bool operator==(const Point &src) const {
-        return x == src.x && y == src.y;
+void Shape::setAttr(const std::string& name, const std::string& value) {
+    if (!_attr.Replace(name, value)) {
+        _attr.Add(name, value);
     }
+}
 
-    bool operator!=(const Point &src) const {
-        return !operator==(src);
+void Shape::setAttr(const std::string& name, int value) {
+    if (!_attr.Replace(name, value)) {
+        _attr.Add(name, value);
     }
-};
+}
 
-struct Shape {
-    Shape() {}
-
-    Shape(const Shape &src) : _attr(src._attr) {}
-
-    virtual ~Shape() {}
-
-    virtual void destroy() = 0;
-
-    virtual Shape *clone() const = 0;
-
-    virtual void render(CJsonObject *items) const = 0;
-
-    virtual bool valid() const = 0;
-
-    virtual const char *supportedAttributes() const = 0;
-
-    CJsonObject _attr;
-
-    void setAttr(const std::string& name, const std::string& value) {
-        if (!_attr.Replace(name, value)) {
-            _attr.Add(name, value);
-        }
-    }
-
-    void setAttr(const std::string& name, int value) {
-        if (!_attr.Replace(name, value)) {
-            _attr.Add(name, value);
-        }
-    }
-
-    bool isFilled() const {
-        std::string fill;
-        _attr.Get("fillStyle", fill);
-        return !fill.empty() && fill != "transparent";
-    }
-};
+bool Shape::isFilled() const {
+    std::string fill;
+    _attr.Get("fillStyle", fill);
+    return !fill.empty() && fill != "transparent";
+}
 
 struct Line : public Shape {
     Point start;
@@ -81,9 +39,10 @@ struct Line : public Shape {
         return new Line(*this);
     }
 
-    virtual void render(CJsonObject *items) const {
+    virtual void render(CJsonObject *items, const CJsonObject* attr=NULL) const {
         if (start != end) {
-            CanvasCmd(items).beginPath().moveTo(start.x, start.y).lineTo(end.x, end.y).attr(_attr).stroke();
+            CanvasCmd(items).beginPath().moveTo(start.x, start.y).lineTo(end.x, end.y)
+                .attr(attr ? attr : _attr).stroke();
         }
     }
 
@@ -93,6 +52,22 @@ struct Line : public Shape {
 
     virtual const char *supportedAttributes() const {
         return "lineCap,lineDashOffset,lineJoin,lineWidth,miterLimit,setLineDash,strokeStyle,alpha";
+    }
+
+    virtual float hitTest(const Point& pt, float tol, Point& nearPt) const {
+        float t1 = (end.y - start.y) / (end.x - start.x);
+        float t2 = -1.f / t1;
+        nearPt.x = (pt.y - start.y + start.x * t1 - pt.x * t2) / (t1 - t2);
+        nearPt.y = start.y + (nearPt.x - start.x) * t1;
+        float dist = pt.distanceTo(nearPt);
+
+        bool between = (start.y <= pt.y && pt.y <= end.y) || (start.y >= pt.y && pt.y >= end.y);
+        if (!between) {
+            nearPt = fabsf(pt.y - start.y) < fabsf(pt.y - end.y) ? start : end;
+            dist = pt.distanceTo(nearPt);
+        }
+
+        return dist;
     }
 };
 
@@ -107,7 +82,7 @@ struct Circle : public Shape {
     Circle(float x, float y, float r) : center(x, y), radius(r) {}
 
     void setEdgePoint(const Point &pt) {
-        radius = hypot(pt.x - center.x, pt.y - center.y);
+        radius = pt.distanceTo(center);
     }
 
     virtual void destroy() {
@@ -118,10 +93,11 @@ struct Circle : public Shape {
         return new Circle(*this);
     }
 
-    virtual void render(CJsonObject *items) const {
+    virtual void render(CJsonObject *items, const CJsonObject* attr=NULL) const {
         if (radius > 0) {
             CanvasCmd c(items);
-            c.beginPath().arc(center.x, center.y, radius, 0, M_PI * 2, false).attr(_attr).stroke();
+            c.beginPath().arc(center.x, center.y, radius, 0, M_PI * 2, false)
+                .attr(attr ? attr : _attr).stroke();
             if (isFilled()) {
                 c.fill();
             }
@@ -135,154 +111,115 @@ struct Circle : public Shape {
     virtual const char *supportedAttributes() const {
         return "lineCap,lineDashOffset,lineJoin,lineWidth,miterLimit,setLineDash,strokeStyle,fillStyle,alpha";
     }
+
+    virtual float hitTest(const Point& pt, float tol, Point& nearPt) const {
+        float dist = pt.distanceTo(center);
+        return fabsf(dist - radius);
+    }
 };
 
-class EventDispacher;
+// EventDispacher
 
-class Command {
-public:
-    Command(const char *name, EventDispacher *owner) : _name(name), _owner(owner) {}
+EventDispacher::EventDispacher() : _down(false), _needRegen(false), _cmd(NULL) {
+}
 
-    virtual ~Command() {}
-
-    virtual void destroy() = 0;
-
-    const std::string &getName() const { return _name; }
-
-    EventDispacher *owner() const { return _owner; }
-
-    virtual void render(CJsonObject *items) const = 0;
-
-    virtual void onDown(const Point &pt) = 0;
-
-    virtual void onMove(const Point &pt) = 0;
-
-    virtual void onUp(const Point &pt) = 0;
-
-private:
-    std::string _name;
-    EventDispacher *_owner;
-};
-
-class EventDispacher {
-public:
-    EventDispacher() : _down(false), _needRegen(false), _cmd(NULL) {
+EventDispacher::~EventDispacher() {
+    clear();
+    for (std::list<Command *>::iterator it = _commands.begin(); it != _commands.end(); ++it) {
+        (*it)->destroy();
     }
+}
 
-    ~EventDispacher() {
-        clear();
-        for (std::list<Command *>::iterator it = _commands.begin(); it != _commands.end(); ++it) {
-            (*it)->destroy();
+void EventDispacher::clear() {
+    for (std::list<Shape *>::iterator it = _shapes.begin(); it != _shapes.end(); ++it) {
+        (*it)->destroy();
+    }
+    _shapes.clear();
+    _needRegen = true;
+}
+
+void EventDispacher::addShape(const Shape *shape) {
+    Shape *sp = shape->clone();
+    _shapes.push_back(sp);
+    _needRegen = true;
+}
+
+void EventDispacher::applyAttr(Shape *shape) {
+    std::string names(shape->supportedAttributes());
+    std::string name, value;
+    size_t lastPos = names.find_first_not_of(",", 0);
+    size_t pos = names.find_first_of(",", lastPos);
+
+    while (names.npos != pos || names.npos != lastPos) {
+        name = names.substr(lastPos, pos - lastPos);
+        lastPos = names.find_first_not_of(",", pos);
+        pos = names.find_first_of(",", lastPos);
+        if (attr.Get(name, value)) {
+            shape->setAttr(name, value);
         }
     }
+}
 
-    bool needRegen() const { return _needRegen; }
+void EventDispacher::addCommand(Command *cmd) {
+    _commands.push_back(cmd);
+}
 
-    const std::list<Shape *> &shapes() const { return _shapes; }
-
-    const std::list<Command *> &commands() const { return _commands; }
-
-    void clear() {
-        for (std::list<Shape *>::iterator it = _shapes.begin(); it != _shapes.end(); ++it) {
-            (*it)->destroy();
-        }
-        _shapes.clear();
-        _needRegen = true;
-    }
-
-    void addShape(const Shape *shape) {
-        Shape *sp = shape->clone();
-        _shapes.push_back(sp);
-        _needRegen = true;
-    }
-
-    void applyAttr(Shape *shape) {
-        std::string names(shape->supportedAttributes());
-        std::string name, value;
-        size_t lastPos = names.find_first_not_of(",", 0);
-        size_t pos = names.find_first_of(",", lastPos);
-
-        while (names.npos != pos || names.npos != lastPos) {
-            name = names.substr(lastPos, pos - lastPos);
-            lastPos = names.find_first_not_of(",", pos);
-            pos = names.find_first_of(",", lastPos);
-            if (attr.Get(name, value)) {
-                shape->setAttr(name, value);
-            }
+Command *EventDispacher::findCommand(const std::string &name) const {
+    for (std::list<Command *>::const_iterator it = _commands.begin(); it != _commands.end(); ++it) {
+        if ((*it)->getName() == name) {
+            return *it;
         }
     }
+    return NULL;
+}
 
-    void addCommand(Command *cmd) {
-        _commands.push_back(cmd);
+bool EventDispacher::setCommand(const std::string &name) {
+    Command *cmd = findCommand(name);
+    if (cmd != NULL) {
+        _cmd = cmd;
     }
+    return cmd != NULL;
+}
 
-    Command *findCommand(const std::string &name) const {
-        for (std::list<Command *>::const_iterator it = _commands.begin(); it != _commands.end(); ++it) {
-            if ((*it)->getName() == name) {
-                return *it;
-            }
+void EventDispacher::regen(CJsonObject *items, int page, int size) {
+    int i = 0;
+    for (std::list<Shape *>::const_iterator it = _shapes.begin(); it != _shapes.end(); ++it) {
+        if (++i > page * size && i <= page * size + size) {
+            (*it)->render(items);
         }
-        return NULL;
     }
+    _needRegen = false;
+}
 
-    bool setCommand(const std::string &name) {
-        Command *cmd = findCommand(name);
-        if (cmd != NULL) {
-            _cmd = cmd;
-        }
-        return cmd != NULL;
+void EventDispacher::onDown(const Point &pt) {
+    _down = true;
+    _downPt = _lastPt = pt;
+
+    if (_cmd != NULL) {
+        _cmd->onDown(pt);
     }
+}
 
-    void regen(CJsonObject *items, int page = 0, int size = 1000) {
-        int i = 0;
-        for (std::list<Shape *>::const_iterator it = _shapes.begin(); it != _shapes.end(); ++it) {
-            if (++i > page * size && i <= page * size + size) {
-                (*it)->render(items);
-            }
-        }
-        _needRegen = false;
-    }
-
-    void onDown(const Point &pt) {
-        _down = true;
-        _downPt = _lastPt = pt;
-
+bool EventDispacher::onMove(const Point &pt) {
+    if (_down && _lastPt != pt) {
         if (_cmd != NULL) {
-            _cmd->onDown(pt);
+            _cmd->onMove(pt);
+        }
+        _lastPt = pt;
+        return true;
+    }
+    return false;
+}
+
+void EventDispacher::onUp(const Point &pt) {
+    if (_down) {
+        _down = false;
+        if (_cmd != NULL) {
+            _cmd->onUp(pt);
         }
     }
+}
 
-    bool onMove(const Point &pt) {
-        if (_down && _lastPt != pt) {
-            if (_cmd != NULL) {
-                _cmd->onMove(pt);
-            }
-            _lastPt = pt;
-            return true;
-        }
-        return false;
-    }
-
-    void onUp(const Point &pt) {
-        if (_down) {
-            _down = false;
-            if (_cmd != NULL) {
-                _cmd->onUp(pt);
-            }
-        }
-    }
-
-public:
-    CJsonObject attr;
-private:
-    bool _down;
-    bool _needRegen;
-    Point _downPt;
-    Point _lastPt;
-    std::list<Shape *> _shapes;
-    std::list<Command *> _commands;
-    Command *_cmd;
-};
 
 extern "C" void clear_content(EventDispacher *p) {
     p->clear();
