@@ -256,7 +256,7 @@ extern "C" bool set_command(EventDispacher *p, const char *name) {
 extern "C" void *render_all(EventDispacher *p, int page, int size) {
     CJsonObject items;
     p->regen(&items, page, size);
-    return to_json(items);
+    return canvas_commands_to_json(items);
 }
 
 extern "C" void *render_dyn(EventDispacher *p) {
@@ -264,7 +264,7 @@ extern "C" void *render_dyn(EventDispacher *p) {
     for (std::list<Command *>::const_iterator it = p->commands().begin(); it != p->commands().end(); ++it) {
         (*it)->render(&items);
     }
-    return to_json(items);
+    return canvas_commands_to_json(items);
 }
 
 extern "C" bool is_need_regen(EventDispacher *p) {

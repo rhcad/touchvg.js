@@ -47,8 +47,8 @@
   const setAttr = (name, value) => {
     name = allocateUTF8(name);
     value = allocateUTF8(value + '');
-    Module._set_attr(data.handle, name, value);
-    data.render();
+    Module._set_attr(stepData.handle, name, value);
+    stepData.render();
     _free(name);
     _free(value);
   };
@@ -67,11 +67,11 @@
   $('.cmd-btn').click(e => {
     const name = $(e.target).attr('id').split('-')[1];
     const _name = allocateUTF8(name);
-    if (Module._set_command(data.handle, _name)) {
+    if (Module._set_command(stepData.handle, _name)) {
       $('.cmd-btn').removeClass('active');
       $(e.target).addClass('active');
     }
-    data.render();
+    stepData.render();
     _free(_name);
   });
 
@@ -80,11 +80,11 @@
     $(e.target).attr('title', 'Line width: ' + e.target.value + 'px');
   });
 
-  var data = {widthReduce: 20, heightReduce: 50};
+  let stepData = {widthReduce: 20, heightReduce: 50};
 
   Module.onRuntimeInitialized = () => {
     const canvas = document.getElementById('bd');
-    const handle = data.handle = Module._create_canvas();
+    const handle = stepData.handle = Module._create_canvas();
     const cacheCanvas = 0; // document.createElement('canvas');
 
     const getPoint = e => {
@@ -92,7 +92,7 @@
       return {x: (0.5 + e.clientX - box.left) << 0, y: (0.5 + e.clientY - box.top) << 0};
     };
 
-    data.render = () => {
+    stepData.render = () => {
       let needRegen = !cacheCanvas || Module._is_need_regen(handle);
       const ctx = canvas.getContext('2d');
 
@@ -118,27 +118,27 @@
     };
 
     window.onresize = () => {
-      canvas.width = canvas._width = window.innerWidth - data.widthReduce;
-      canvas.height = canvas._height = window.innerHeight - data.heightReduce;
-      canvas.getContext('2d') && data.render();   // _width, getContext: for hidpi-canvas-polyfill
+      canvas.width = canvas._width = window.innerWidth - stepData.widthReduce;
+      canvas.height = canvas._height = window.innerHeight - stepData.heightReduce;
+      canvas.getContext('2d') && stepData.render();   // _width, getContext: for hidpi-canvas-polyfill
     };
     window.onresize();
 
     canvas.onmousedown = e => {
       const {x, y} = getPoint(e);
       Module._mouse_down(handle, x, y);
-      data.render();
+      stepData.render();
     };
     canvas.onmousemove = e => {
       const {x, y} = getPoint(e);
       if (Module._mouse_move(handle, x, y)) {
-        data.render();
+        stepData.render();
       }
     };
     canvas.onmouseup = e => {
       const {x, y} = getPoint(e);
       Module._mouse_up(handle, x, y);
-      data.render();
+      stepData.render();
     };
   };
 </script>

@@ -15,12 +15,12 @@ public:
 
     CanvasCmd& moveTo(float x, float y);
     CanvasCmd& lineTo(float x, float y);
-    CanvasCmd& arc(float x, float y, float radius, float startAngle, float endAngle, bool ccw = true);
+    CanvasCmd& arc(float x, float y, float radius, float startAngle, float endAngle, bool ccw=true);
     CanvasCmd& arcTo(float x1, float y1, float x2, float y2, float radius);
     CanvasCmd& quadraticCurveTo(float cpx, float cpy, float x, float y);
     CanvasCmd& bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
     CanvasCmd& ellipse(float x, float y, float radiusX, float radiusY, float rotation, float startAngle,
-            float endAngle, bool ccw = true);
+            float endAngle, bool ccw=true);
     CanvasCmd& rect(float x, float y, float w, float h);
     CanvasCmd& text(float x, float y, const char *s);
 
@@ -31,4 +31,4 @@ private:
     CanvasCmd& push();
 };
 
-void* to_json(CJsonObject& items);
+void* canvas_commands_to_json(const CJsonObject& items);

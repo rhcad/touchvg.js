@@ -6,7 +6,7 @@
         if (json) {
             for (const cmd of JSON.parse(json)) {
                 try {
-                    commands[cmd.cmd](cmd, ctx);
+                    commands[cmd.cmd](ctx, cmd);
                     count++;
                 } catch (e) {
                     console.error(e, cmd);
@@ -16,51 +16,72 @@
         return count;
     };
     const commands = {
-        beginPath(cmd, ctx) {
+        beginPath(ctx) {
             ctx.beginPath();
         },
-        closePath(cmd, ctx) {
+        closePath(ctx) {
             ctx.closePath();
         },
-        stroke(cmd, ctx) {
+        stroke(ctx) {
             ctx.stroke();
         },
-        fill(cmd, ctx) {
+        fill(ctx) {
             ctx.fill();
         },
-        moveTo(cmd, ctx) {
+        restore(ctx) {
+            ctx.restore();
+        },
+        save(ctx) {
+            ctx.save();
+        },
+        clip(ctx) {
+            ctx.clip();
+        },
+        moveTo(ctx, cmd) {
             ctx.moveTo(cmd.x, cmd.y);
         },
-        lineTo(cmd, ctx) {
+        lineTo(ctx, cmd) {
             ctx.lineTo(cmd.x, cmd.y);
         },
-        arc(cmd, ctx) {
+        arc(ctx, cmd) {
             ctx.arc(cmd.x, cmd.y, cmd.radius, cmd.startAngle, cmd.endAngle, cmd.ccw);
         },
-        arcTo(cmd, ctx) {
+        arcTo(ctx, cmd) {
             ctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.radius);
         },
-        quadraticCurveTo(cmd, ctx) {
+        quadraticCurveTo(ctx, cmd) {
             ctx.quadraticCurveTo(cmd.cpx, cmd.cpy, cmd.x, cmd.y);
         },
-        bezierCurveTo(cmd, ctx) {
+        bezierCurveTo(ctx, cmd) {
             ctx.bezierCurveTo(cmd.cp1x, cmd.cp1y, cmd.cp2x, cmd.cp2y, cmd.x, cmd.y);
         },
-        ellipse(cmd, ctx) {
+        ellipse(ctx, cmd) {
             ctx.ellipse(cmd.x, cmd.y, cmd.radiusX, cmd.radiusY, cmd.rotation, cmd.startAngle, cmd.endAngle, cmd.ccw);
         },
-        rect(cmd, ctx) {
+        rect(ctx, cmd) {
             ctx.rect(cmd.x, cmd.y, cmd.w, cmd.h);
         },
-        text(cmd, ctx) {
+        clearRect(ctx, cmd) {
+            ctx.clearRect(cmd.x, cmd.y, cmd.w, cmd.h);
+        },
+        fillRect(ctx, cmd) {
+            ctx.fillRect(cmd.x, cmd.y, cmd.w, cmd.h);
+        },
+        strokeRect(ctx, cmd) {
+            ctx.strokeRect(cmd.x, cmd.y, cmd.w, cmd.h);
+        },
+        text(ctx, cmd) {
             ctx.font = '24px Arial';
             ctx.fillText(cmd.text, cmd.x, cmd.y);
+        },
+        textAlign(ctx, cmd) {
+            ctx.textAlign = cmd.textAlign;
         },
         attrNames: ['lineCap', 'lineDashOffset', 'lineJoin', 'lineWidth', 'miterLimit', 'setLineDash',
             'direction', 'font', 'textAlign', 'textBaseline',
             'fillStyle', 'strokeStyle', 'alpha'
         ],
-        attr(cmd, ctx) {
+        attr(ctx, cmd) {
             Object.keys(cmd).forEach(name => {
                 if (name === 'setLineDash') {
                     if (typeof cmd[name] === 'string') {

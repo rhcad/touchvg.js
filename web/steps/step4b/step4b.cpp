@@ -1,4 +1,6 @@
-#include "step4_canvas.h"
+#include "step4b_canvas.h"
+#include "gicanvas.h"
+#include "gicontxt.h"
 
 extern "C" void* render_as_json() {
     CJsonObject items;
